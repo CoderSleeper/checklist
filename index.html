@@ -3,127 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planner Đổi Xu → Điểm — v6.2</title>
+  <title>Planner Đổi Xu → Điểm — v7.3b Rocket Finale • Trail + Flash</title>
   <style>
     :root{
-      --bg:#0b1020; --bg2:#0e1326;
-      --text:#eef2ff; --muted:#c7c9d1;
-      --shadow:0 16px 40px rgba(0,0,0,.35);
-      --radius:18px; --outline:0 0 0 5px rgba(139,92,246,.25);
-      --galaxy: linear-gradient(135deg, #7c3aed, #d946ef 30%, #6366f1 60%, #22d3ee);
-      --segActiveBg: var(--galaxy);
-      --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --good:#60a5fa;
+      /* Cyberpunk palette */
+      --bg:#0a0014;
+      --bg2:#120021;
+      --neon1:#ff00e5;   /* magenta */
+      --neon2:#00eaff;   /* cyan */
+      --neon3:#9dff00;   /* acid green */
+      --text:#e8e9ff;
+      --muted:#b7b8d6;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.09);
+      --ringBase:#3b2b52;
+      --shadow:0 18px 48px rgba(0,0,0,.5);
+      --radius:18px;
+      --outline:0 0 0 4px rgba(255,0,229,.25);
+      --grad: linear-gradient(135deg, rgba(255,0,229,.9), rgba(0,234,255,.9) 55%, rgba(157,255,0,.9));
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,'Noto Sans',sans-serif; color:var(--text);
-      background: radial-gradient(1200px 800px at 10% -10%, #1f1446 0%, transparent 60%),
-                  radial-gradient(1000px 700px at 110% 10%, #0c5a7d 0%, transparent 60%),
-                  var(--bg); overflow-x:hidden; }
-    #bg{position:fixed; inset:0; z-index:-2; pointer-events:none}
-    #fx{position:fixed; inset:0; z-index:9999; pointer-events:none}
-    header, .hero, .wrap, .card, .checkCard { position:relative; z-index:10 }
-    .seg{ position: relative; z-index: 20; pointer-events:auto }
-    .seg button{ position: relative; z-index: 21; }
-    .toolbar{ position: relative; z-index: 20; }
-
-    header{padding:22px 18px 6px; display:flex; align-items:center; justify-content:space-between}
-    h1{margin:0;font-size:clamp(22px,3vw,36px)}
-    .sub{color:var(--muted); margin:6px 18px 12px}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Noto Sans';
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 10% -10%, #2a0055 0%, transparent 70%),
+        radial-gradient(1000px 700px at 120% 10%, #00384f 0%, transparent 65%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow-x:hidden;
+    }
+    body::after{
+      content:''; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px);
+      mix-blend-mode:soft-light; opacity:.35; z-index:0;
+    }
+    #bg{position:fixed; inset:0; z-index:-3; pointer-events:none}
+    #fx{position:fixed; inset:0; z-index:9997; pointer-events:none}
+    header{position:relative; z-index:10; padding:22px 18px 6px; display:flex; align-items:center; justify-content:space-between}
+    h1{margin:0; font-size:clamp(22px,3.2vw,38px); letter-spacing:.3px}
+    .brand{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 16px rgba(255,0,229,.35)}
     .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .btn{border:none; outline:none; cursor:pointer; user-select:none; padding:10px 12px; border-radius:12px; font-weight:700;
-      background:var(--galaxy); color:#fff; box-shadow:0 10px 24px rgba(0,0,0,.25);
+    .btn{border:none; outline:none; cursor:pointer; user-select:none; padding:10px 14px; border-radius:12px; font-weight:800;
+      background:var(--grad); color:#0b0013; box-shadow:0 0 24px rgba(255,0,229,.35), inset 0 0 0 1px rgba(255,255,255,.25);
       transition:transform .12s ease, filter .12s ease}
-    .btn:active{transform:translateY(1px); filter:saturate(1.1)}
-    .ghost{background:transparent; color:var(--text); border:1px solid #ffffff33; box-shadow:none}
-
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .ghost{background:var(--panel); color:var(--text); border:1px solid #ffffff2a; box-shadow:0 0 16px rgba(0,234,255,.15)}
+    .sub{color:var(--muted); margin:6px 18px 18px}
     .hero{position:relative; padding:18px; border-radius:24px; overflow:hidden; box-shadow:var(--shadow);
-      background: linear-gradient(120deg,rgba(124,58,237,.55), rgba(34,211,238,.45));
-      margin: 0 18px 12px; backdrop-filter: blur(8px); border: 1px solid #ffffff2a}
-    .hero::before,.hero::after{content:''; position:absolute; inset:-40%;
-      background: radial-gradient(60% 60% at 10% 20%, rgba(255,255,255,.22), transparent 60%),
-                  radial-gradient(50% 50% at 80% 30%, rgba(255,255,255,.16), transparent 60%),
-                  radial-gradient(50% 50% at 40% 90%, rgba(255,255,255,.10));
-      filter: blur(18px); animation: floatGlow 18s linear infinite; opacity:.8; pointer-events:none; z-index:0}
-    @keyframes floatGlow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+      background:linear-gradient(135deg, rgba(255,0,229,.18), rgba(0,234,255,.18) 60%, rgba(157,255,0,.18));
+      margin: 0 18px 12px; border:1px solid #ffffff1f}
     .hero .title{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
-    .hero .title h2{margin:0; font-size:clamp(18px,2.6vw,24px); letter-spacing:.3px; text-shadow:0 2px 10px rgba(0,0,0,.35)}
-    .hero .mini{font-size:12px; opacity:.92}
+    .hero .title h2{margin:0; font-size:clamp(18px,2.6vw,24px)}
     .hero .grid{gap:14px; position:relative; z-index:5}
-    .hero label{color:#0b1020; font-weight:800}
-    .hero input{background:rgba(255,255,255,.9); color:#111; border:none; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.8);
+    .hero label{color:#eaffff; font-weight:800; text-shadow:0 0 8px rgba(0,234,255,.25)}
+    .hero input{background:rgba(13,8,29,.7); color:#e6e7ff; border:1px solid #6a3a97; border-radius:14px; box-shadow:inset 0 0 0 1px #ffffff1a;
       padding:14px 16px; font-size:17px; transition: transform .12s ease, box-shadow .2s ease}
-    .hero input:focus{transform:translateY(-1px); box-shadow:0 10px 26px rgba(0,0,0,.28), 0 0 0 5px rgba(255,255,255,.6)}
-
-    .wrap{padding:12px 18px 26px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
-    @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
-    .card{background:rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px; backdrop-filter: blur(8px); border:1px solid #ffffff2a}
+    .hero input:focus{transform:translateY(-1px); box-shadow:0 0 0 4px rgba(0,234,255,.22), inset 0 0 0 1px #ffffff22}
+    .wrap{padding:12px 18px 26px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px; position:relative; z-index:5}
+    @media (max-width:960px){.wrap{grid-template-columns:1fr}}
+    .card{background:var(--panel); border:1px solid #ffffff1c; border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
     label{display:block;font-weight:750;margin:12px 0 6px}
-    input[type="text"],input[type="number"]{width:100%;padding:12px 14px;border:1px solid #ffffff30;background:rgba(255,255,255,.06);color:var(--text);
-      border-radius:12px;font-size:16px;outline:none;transition:.18s ease; box-shadow: inset 0 -1px 0 rgba(255,255,255,.15)}
-    input:focus{box-shadow:var(--outline), inset 0 -1px 0 rgba(255,255,255,.15)}
+    input[type="text"]{width:100%;padding:12px 14px;border:1px solid #ffffff2a;background:rgba(8,5,20,.65);color:var(--text);
+      border-radius:12px;font-size:16px;outline:none;transition:.18s ease; box-shadow: inset 0 -1px 0 rgba(255,255,255,.12)}
+    input:focus{box-shadow:var(--outline), inset 0 -1px 0 rgba(255,255,255,.12)}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .muted{font-size:12px;color:var(--muted)}
-
     .result h3{margin:8px 0 12px}
     .stat{display:flex; align-items:center; justify-content:space-between;
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      background:linear-gradient(180deg, var(--panel2), rgba(255,255,255,.04));
       border:1px dashed #ffffff33; border-radius:14px; padding:12px 14px; margin-bottom:10px}
-    .stat b{font-size:20px; filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))}
-    .stat.hl{background:linear-gradient(135deg, #22d3ee22, #8b5cf622); border:1px solid #9dbcf7a6; box-shadow:0 14px 40px rgba(34,211,238,.22)}
-    .stat.hl b{font-size:24px}
-
+    .stat.hl{background:linear-gradient(135deg, rgba(255,0,229,.14), rgba(0,234,255,.14)); border:1px solid #9b5cf6; box-shadow:0 0 28px rgba(255,0,229,.15)}
     .kpis{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:center}
-    .ring{display:flex; flex-direction:column; align-items:center; gap:10px; min-width:120px; position:relative; z-index:10}
-    .ringWrap{position:relative; width:120px; height:120px}
+    .ring{display:flex; flex-direction:column; align-items:center; gap:10px; min-width:120px}
+    .ringWrap{position:relative; width:120px; height:120px; filter: drop-shadow(0 0 10px rgba(255,0,229,.3))}
     .ringWrap svg{transform:rotate(-90deg)}
     .ringWrap .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:20px}
-    .seg{display:inline-flex; background:#ffffff14; border:1px solid #ffffff33; border-radius:999px; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.25); margin-top:8px}
+    .seg{display:inline-flex; background:#ffffff14; border:1px solid #ffffff33; border-radius:999px; overflow:hidden; box-shadow:0 0 22px rgba(0,234,255,.15); margin-top:8px}
     .seg button{background:transparent; color:var(--text); padding:6px 12px; border:none; cursor:pointer; font-size:20px; line-height:1}
-    .seg button.active{background: var(--segActiveBg); color:#fff}
-
-    .bar{height:8px; border-radius:999px; background:#ffffff22; overflow:hidden}
-    .bar > span{display:block; height:100%; width:0%; background:var(--galaxy); transition:width .4s cubic-bezier(.4,0,.2,1)}
-
-    .toolbar{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
-    .ghost:hover{background:#ffffff10}
-
+    .seg button.active{background:var(--grad); color:#120021}
+    .bar{height:8px; border-radius:999px; background:#2e1e45; overflow:hidden; box-shadow:inset 0 0 8px #000}
+    .bar > span{display:block; height:100%; width:0%; background:var(--grad); transition:width .4s cubic-bezier(.4,0,.2,1)}
     .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:20px;
-      background:#111a; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; pointer-events:none;
+      background:#0d0b18cc; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; pointer-events:none;
       transition:opacity .25s ease, transform .25s ease; backdrop-filter: blur(6px); z-index:99999}
     .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
-
-    .tilt{transform-style:preserve-3d; transition: transform .12s ease}
-    .tilt:hover{transform:perspective(900px) rotateX(2deg) rotateY(-2deg) translateY(-2px)}
-    @media (prefers-reduced-motion: reduce){.tilt:hover,.hero input:focus{transform:none} .ring svg,.bar > span{transition:none}}
-
-    /* Checklist */
     .checkCard{margin: 0 18px 28px}
     .cl{list-style:none; padding:0; margin:8px 0 0; display:grid; gap:10px}
     .cl li{display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; border:1px solid #ffffff24;
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));}
-    .tick{width:28px; height:28px; border-radius:50%; border:2px solid #ffffff55; display:grid; place-items:center; flex:0 0 28px; color:#fff}
-    .tick svg{width:18px; height:18px}
-    .li-txt{display:flex; flex-direction:column}
-    .li-txt b{font-size:15px}
-    .li-sub{font-size:12px; color:#cfd2ff}
-    .achieved{border-color:#8b5cf6aa; box-shadow:0 10px 28px rgba(139,92,246,.22)}
-    .achieved .tick{background:var(--galaxy); border-color:transparent}
-    .achieved b{background:var(--galaxy); -webkit-background-clip:text; background-clip:text; color:transparent}
+      background:linear-gradient(180deg, var(--panel2), rgba(255,255,255,.04));}
+    .tick{width:28px; height:28px; border-radius:50%; border:2px solid #ffffff55; display:grid; place-items:center; color:#fff}
+    .achieved{border-color:#ff00e5aa; box-shadow:0 0 22px rgba(255,0,229,.25)}
+    .achieved .tick{background:var(--grad); border-color:transparent}
+    .achieved b{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
     .ctl{display:flex; gap:10px; justify-content:flex-end; margin-top:10px}
-
-    /* Pace card */
-    .paceCard{margin: 0 18px 28px}
-    .paceGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
-      border:1px solid #ffffff30; background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05)); font-weight:700}
-    .pill.good{border-color: #60a5fa66}
-    .pill.ok{border-color: #22c55e66}
-    .pill.warn{border-color: #f59e0b66}
-    .pill.bad{border-color: #ef444466}
-    .pill small{opacity:.9; font-weight:600}
-    .paceBar{height:10px; border-radius:999px; background:#ffffff22; overflow:hidden}
-    .paceBar > span{display:block; height:100%; width:0%; background:linear-gradient(90deg, #22c55e, #60a5fa); transition:width .35s cubic-bezier(.4,0,.2,1)}
-    .paceNote{font-size:12px; color:#cfd2ff; margin-top:6px}
   </style>
 </head>
 <body>
@@ -131,19 +105,19 @@
   <canvas id="fx"></canvas>
 
   <header>
-    <h1>Planner đổi Xu → Điểm <span style="opacity:.7">• Galaxy</span></h1>
+    <h1><span class="brand">Planner đổi Xu → Điểm</span> <span style="opacity:.85">• Rocket Finale v7.3b</span></h1>
     <div class="actions">
-      <button class="btn ghost" id="resetBtn" title="Xoá & xoá lưu">Reset</button>
-      <button class="btn ghost" id="hapticBtn" title="Bật/tắt rung">Rung: Bật</button>
-      <button class="btn" id="copyBtn" title="Copy kế hoạch">Copy kế hoạch</button>
+      <button class="btn ghost" id="resetBtn">Reset dữ liệu</button>
+      <button class="btn ghost" id="hapticBtn">Rung: Bật</button>
+      <button class="btn" id="copyBtn">Copy kế hoạch</button>
     </div>
   </header>
-  <div class="sub">Bản <b>v6.2</b>:<b> Nhịp độ thông minh </b> Mục tiêu/ngày & bạn đạt bao nhiêu hôm nay.</div>
+  <div class="sub">Finale 100%: <b>5 tên lửa</b> (3 giữa + 2 hai bên), <b>vệt sáng theo đường bay</b> và <b>chớp sáng toàn màn</b> nhẹ. Tự ẩn sau khi nổ.</div>
 
-  <section class="hero tilt">
+  <section class="hero">
     <div class="title">
       <h2>Thông số mục tiêu</h2>
-      <div class="mini">Tập trung vào mốc & số ngày</div>
+      <div class="muted">Nhập mốc & số ngày</div>
     </div>
     <div class="grid">
       <div>
@@ -158,7 +132,7 @@
   </section>
 
   <section class="wrap">
-    <div class="card tilt">
+    <div class="card">
       <div class="grid">
         <div>
           <label for="havePoint">Điểm hiện có</label>
@@ -179,10 +153,10 @@
           <input id="xpx" type="text" inputmode="numeric" placeholder="VD: 100" value="100">
         </div>
       </div>
-      <div class="muted">Mẹo: Gõ số bình thường; hệ thống tự hiểu dấu phẩy/chấm. Dùng Tab để chuyển ô nhanh.</div>
+      <div class="muted">Gõ số bình thường; hệ thống tự hiểu dấu phẩy/chấm.</div>
     </div>
 
-    <div class="card result tilt">
+    <div class="card result">
       <h3>Kết quả</h3>
       <div class="kpis">
         <div class="ring">
@@ -190,13 +164,12 @@
             <svg width="120" height="120" viewBox="0 0 120 120">
               <defs>
                 <linearGradient id="galaxyGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%"  stop-color="#7c3aed"/>
-                  <stop offset="30%" stop-color="#d946ef"/>
-                  <stop offset="60%" stop-color="#6366f1"/>
-                  <stop offset="100%" stop-color="#22d3ee"/>
+                  <stop offset="0%"  stop-color="#ff00e5"/>
+                  <stop offset="45%" stop-color="#00eaff"/>
+                  <stop offset="100%" stop-color="#9dff00"/>
                 </linearGradient>
               </defs>
-              <circle cx="60" cy="60" r="50" stroke="#ffffff22" stroke-width="12" fill="none"/>
+              <circle cx="60" cy="60" r="50" stroke="#2b1b40" stroke-width="12" fill="none"/>
               <circle id="ring" cx="60" cy="60" r="50" stroke="url(#galaxyGrad)" stroke-linecap="round" stroke-width="12" fill="none" stroke-dasharray="314" stroke-dashoffset="314"/>
             </svg>
             <div class="pct" id="pct">0%</div>
@@ -207,97 +180,54 @@
           </div>
         </div>
         <div>
-          <div class="stat hl" id="needPointBox"><span>Điểm còn thiếu</span><b id="needPoint">0</b></div>
+          <div class="stat hl"><span>Điểm còn thiếu</span><b id="needPoint">0</b></div>
           <div class="stat"><span>Số lượt cần đổi</span><b id="needTurn">0</b></div>
           <div class="stat"><span>Xu cần để đủ mốc</span><b id="needXu">0</b></div>
-          <div class="stat hl" id="lackXuBox"><span>Xu còn thiếu (trừ xu đang có)</span><b id="lackXu">0</b></div>
+          <div class="stat hl"><span>Xu còn thiếu (trừ xu đang có)</span><b id="lackXu">0</b></div>
         </div>
       </div>
 
       <div class="stat"><span>Với xu hiện có (đổi tối đa)</span><b id="canNow">0 điểm</b></div>
       <div class="stat"><span>Kế hoạch dàn đều / ngày</span><b id="perDay">0 xu • 0 lượt • 0 điểm</b></div>
       <div class="bar" title="Tiến độ đạt mốc"><span id="bar" style="width:0%"></span></div>
-      <div class="toolbar">
-        <button class="btn" id="confettiBtn" title="Bắn pháo giấy thử">🎊 Bắn thử</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Pace (smart) -->
-  <section class="card paceCard tilt">
-    <h3>Nhịp độ hôm nay</h3>
-    <div class="paceGrid">
-      <div>
-        <div class="stat"><span>Mục tiêu hôm nay</span><b id="paceTarget">0 điểm • 0 lượt</b></div>
-        <div class="stat"><span>Đã đạt hôm nay</span><b id="paceDone">0 điểm • 0 lượt</b></div>
-      </div>
-      <div>
-        <div class="pill" id="paceStatus"><span id="paceEmoji">⏳</span><span id="paceText">Đang tính...</span></div>
-        <div class="paceBar" style="margin-top:10px"><span id="paceBar" style="width:0%"></span></div>
-        <div class="paceNote">Mốc “hôm nay” = điểm tại thời điểm đặt mốc đầu ngày. Nhấn <b>Đặt lại nhịp hôm nay</b> để lấy mốc mới.</div>
-        <div class="ctl" style="justify-content:flex-start; margin-top:8px">
-          <button class="btn ghost" id="paceReset">Đặt lại nhịp hôm nay</button>
-        </div>
+      <div class="toolbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
+        <button class="btn ghost" id="confettiBtn">🎊 Bắn thử pháo</button>
       </div>
     </div>
   </section>
 
   <!-- Checklist milestones -->
-  <section class="card checkCard tilt">
+  <section class="card checkCard">
     <h3>Checklist mốc (dựa theo: <span id="modeNote">🥵 Hiện tại</span>)</h3>
     <ul class="cl">
-      <li id="ms25">
-        <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
-        <div class="li-txt">
-          <b>25%</b>
-          <span class="li-sub">Cần ≥ <span id="req25">0</span> điểm • <span id="ts25">Chưa đạt</span></span>
-        </div>
-      </li>
-      <li id="ms50">
-        <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
-        <div class="li-txt">
-          <b>50% (nửa chặng)</b>
-          <span class="li-sub">Cần ≥ <span id="req50">0</span> điểm • <span id="ts50">Chưa đạt</span></span>
-        </div>
-      </li>
-      <li id="ms75">
-        <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
-        <div class="li-txt">
-          <b>75%</b>
-          <span class="li-sub">Cần ≥ <span id="req75">0</span> điểm • <span id="ts75">Chưa đạt</span></span>
-        </div>
-      </li>
-      <li id="ms100">
-        <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
-        <div class="li-txt">
-          <b>100% (cán mốc)</b>
-          <span class="li-sub">Cần ≥ <span id="req100">0</span> điểm • <span id="ts100">Chưa đạt</span></span>
-        </div>
-      </li>
+      <li id="ms25"><div class="tick">✓</div><div class="li-txt"><b>25%</b> • <span class="li-sub" id="ts25">Chưa đạt</span></div></li>
+      <li id="ms50"><div class="tick">✓</div><div class="li-txt"><b>50%</b> • <span class="li-sub" id="ts50">Chưa đạt</span></div></li>
+      <li id="ms75"><div class="tick">✓</div><div class="li-txt"><b>75%</b> • <span class="li-sub" id="ts75">Chưa đạt</span></div></li>
+      <li id="ms100"><div class="tick">✓</div><div class="li-txt"><b>100%</b> • <span class="li-sub" id="ts100">Chưa đạt</span></div></li>
     </ul>
     <div class="ctl">
       <button class="btn ghost" id="resetMs">Reset checklist</button>
     </div>
   </section>
 
-  <div class="toast" id="toast">Đã copy kế hoạch.</div>
+  <div class="toast" id="toast" role="status" aria-live="polite">Đã copy kế hoạch.</div>
 
   <script>
+    // ===== Helpers & State =====
     const $ = (id) => document.getElementById(id);
-    const STORAGE_KEY = 'shooting_star_planner_v62';
+    const STORAGE_KEY = 'shooting_star_planner_v7_3b_rocket_finale_trail_flash';
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const num = (v) => { if(typeof v !== 'string') v = String(v ?? ''); v = v.replace(/[^\d\-,.]/g,'').replace(/,/g,''); const sign = v.trim().startsWith('-') ? -1 : 1; v = v.replace(/-/g,''); const out = parseFloat(v); return isNaN(out) ? 0 : out * sign; };
     const fmtInt = (x) => new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.floor(x)));
     const nowStamp = () => new Date().toLocaleString('vi-VN');
-    const todayKey = () => { const d = new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; };
     const toast = (t="Đã copy") => { const el = $('toast'); el.textContent = t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1600); };
 
-    let saveTimer=null, ringMode='max';
+    let ringMode='now';
     let milestones = { "25": null, "50": null, "75": null, "100": null };
     let settings = { haptics: true };
-    let pace = { day: todayKey(), basePoint: 0, baseTurns: 0 }; // baseTurns là ước tính theo điểm/ppx
 
     function getState(){ return {
-      ringMode, milestones, settings, pace,
+      ringMode, milestones, settings,
       target: $('target').value, days: $('days').value, havePoint: $('havePoint').value,
       haveXu: $('haveXu').value, ppx: $('ppx').value, xpx: $('xpx').value
     };}
@@ -306,18 +236,17 @@
       if(s.ringMode) ringMode = s.ringMode;
       if(s.milestones) milestones = s.milestones;
       if(s.settings) settings = Object.assign(settings, s.settings);
-      if(s.pace) pace = Object.assign(pace, s.pace);
-      setModeButtons(); renderMilestonesMeta(); updateHapticBtn(); updateReqLabels(num($('target').value));
+      setModeButtons(); renderMilestonesMeta();
     }
     function saveNow(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(getState())); }catch(e){} }
-    function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 200); }
     function loadSaved(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) setState(JSON.parse(raw)); }catch(e){} }
 
     function vibrate(pattern){ if(settings.haptics && 'vibrate' in navigator) { try{ navigator.vibrate(pattern); }catch(e){} } }
     function updateHapticBtn(){ $('hapticBtn').textContent = 'Rung: ' + (settings.haptics ? 'Bật' : 'Tắt'); }
+
     document.addEventListener('click', (e)=>{
       if(e.target && e.target.id === 'hapticBtn'){
-        settings.haptics=!settings.haptics; updateHapticBtn(); scheduleSave(); if(settings.haptics) vibrate([12,30,12]);
+        settings.haptics=!settings.haptics; updateHapticBtn(); saveNow(); if(settings.haptics) vibrate([12,30,12]);
       }
     });
 
@@ -327,42 +256,293 @@
       $('modeNote').textContent = ringMode==='now' ? '🥵 Hiện tại' : '🤩 Sau khi đổi hết xu';
     }
 
-    function updateReqLabels(target){
-      const req = (r) => fmtInt(Math.ceil(target * r));
-      $('req25').textContent = req(.25);
-      $('req50').textContent = req(.50);
-      $('req75').textContent = req(.75);
-      $('req100').textContent = req(1);
-    }
     function renderMilestonesMeta(){
       ['25','50','75','100'].forEach(k => {
         const tsEl = $('ts'+k);
         if(!tsEl) return;
-        if(milestones[k]) tsEl.textContent = 'Đạt lúc ' + milestones[k];
-        else tsEl.textContent = 'Chưa đạt';
+        tsEl.textContent = milestones[k] ? ('Đạt lúc ' + milestones[k]) : 'Chưa đạt';
         $('ms'+k).classList.toggle('achieved', !!milestones[k]);
       });
     }
 
+    // ===== Background stars (neon specks) =====
+    const bg = $('bg'); const bgctx = bg.getContext('2d'); let BW=0,BH=0,stars=[]; let starAnimOn = true;
+    function resizeBg(){ BW=bg.width=window.innerWidth; BH=bg.height=window.innerHeight; }
+    resizeBg(); window.addEventListener('resize', resizeBg);
+    function initStars(){ stars = Array.from({length: 170}, () => ({ x: Math.random()*BW, y: Math.random()*BH, r: Math.random()*1.5+0.3, s: Math.random()*0.6+0.2, c: Math.random()<.5?'#fff':(Math.random()<.5?'#ff00e5':'#00eaff') })); }
+    function drawBg(){ 
+      if(!starAnimOn){ requestAnimationFrame(drawBg); return; }
+      bgctx.clearRect(0,0,BW,BH);
+      for(const st of stars){ bgctx.globalAlpha = .35 + Math.random()*.55; bgctx.fillStyle = st.c; bgctx.beginPath(); bgctx.arc(st.x,st.y,st.r,0,Math.PI*2); bgctx.fill();
+        st.x += st.s*0.2; st.y -= st.s*0.05; if(st.x>BW+10) st.x=-10; if(st.y<-10) st.y=BH+10; }
+      requestAnimationFrame(drawBg);
+    }
+    initStars(); drawBg();
+    document.addEventListener('visibilitychange', ()=>{ starAnimOn = !document.hidden; });
+
+    // ===== FX Engine: Confetti + Rocket + Flash (auto-hide) =====
+    const fx = $('fx'); const fxctx = fx.getContext('2d'); let FW=0,FH=0;
+    function resizeFx(){ FW=fx.width=window.innerWidth; FH=fx.height=window.innerHeight; }
+    resizeFx(); window.addEventListener('resize', resizeFx);
+
+    let confetti = []; // common pool
+    let rockets = [];
+    let fxAnimId = null;
+    let flashAlpha = 0; // screen flash alpha
+
+    function animateFX(){
+      fxctx.clearRect(0,0,FW,FH);
+
+      // Draw rockets
+      for(let i=rockets.length-1;i>=0;i--){
+        const r = rockets[i];
+
+        // trail particles (small flickers)
+        if(!prefersReduced){
+          for(let k=0;k<5;k++){
+            const hue = Math.random()<0.5? 305 : 185; // magenta or cyan
+            confetti.push({
+              x: r.x + (Math.random()-0.5)*6,
+              y: r.y + r.size/2 + Math.random()*2,
+              vx: (Math.random()-.5)*0.5,
+              vy: 1.4 + Math.random()*1.6,
+              ax: 0, ay: 0.02,
+              rot: 0, vr: 0,
+              size: 2 + Math.random()*3,
+              shape: 'circle',
+              col: `hsl(${hue},92%,60%)`,
+              life: 0, maxLife: 70 + Math.random()*50
+            });
+          }
+        }
+
+        // physics
+        r.vy += r.ay; r.x += r.vx; r.y += r.vy; r.life++;
+        // store trail
+        r.trail.unshift({x:r.x, y:r.y});
+        if(r.trail.length>28) r.trail.pop();
+
+        // draw trail glow (polyline fading)
+        drawTrail(r);
+
+        drawRocket(r);
+
+        if(r.y < r.targetY || r.life > r.maxLife){
+          if(!r.exploded){ neonBurst(r.x, r.y-12, r.super? 240 : 160); r.exploded = true; }
+          rockets.splice(i,1);
+        }
+      }
+
+      // Draw confetti/sparks
+      for(let i=confetti.length-1;i>=0;i--){
+        const p = confetti[i];
+        p.vx += p.ax; p.vy += p.ay; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+        drawParticle(p);
+        if(p.y>FH+60 || p.x<-60 || p.x>FW+60 || p.life>p.maxLife){ confetti.splice(i,1); }
+      }
+
+      // Screen flash overlay (decay)
+      if(flashAlpha>0){
+        fxctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+        fxctx.fillRect(0,0,FW,FH);
+        flashAlpha -= 0.05;
+      }
+
+      if(confetti.length>0 || rockets.length>0 || flashAlpha>0){
+        fxAnimId = requestAnimationFrame(animateFX);
+      }else{
+        cancelAnimationFrame(fxAnimId); fxAnimId = null;
+        fxctx.clearRect(0,0,FW,FH);
+      }
+    }
+
+    function drawTrail(r){
+      if(r.trail.length<2) return;
+      for(let i=0;i<r.trail.length-1;i++){
+        const p1 = r.trail[i], p2 = r.trail[i+1];
+        const t = 1 - i / r.trail.length; // 1..0
+        const lw = 8 * t; // line width taper
+        const a = 0.5 * t; // alpha taper
+        const grad = fxctx.createLinearGradient(p1.x,p1.y,p2.x,p2.y);
+        grad.addColorStop(0, `rgba(255,0,229,${a})`);
+        grad.addColorStop(1, `rgba(0,234,255,${Math.max(0,a-0.1)})`);
+        fxctx.strokeStyle = grad;
+        fxctx.lineWidth = lw;
+        fxctx.beginPath();
+        fxctx.moveTo(p1.x, p1.y);
+        fxctx.lineTo(p2.x, p2.y);
+        fxctx.stroke();
+      }
+    }
+
+    function drawParticle(p){
+      fxctx.save(); fxctx.translate(p.x, p.y); fxctx.rotate(p.rot*Math.PI/180);
+      fxctx.fillStyle = p.col;
+      if(p.shape==='circle'){
+        fxctx.beginPath(); fxctx.arc(0,0,p.size/2,0,Math.PI*2); fxctx.fill();
+      }else if(p.shape==='strip'){
+        fxctx.fillRect(-p.size/2, -p.size/6, p.size, p.size/3);
+      }else{
+        fxctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      }
+      fxctx.restore();
+    }
+
+    // Neon burst with adjustable count
+    function neonBurst(x,y,count=160){
+      const N = count;
+      for(let i=0;i<N;i++){
+        const a = Math.random()*Math.PI*2, s = 2 + Math.random()*4.4;
+        const huePool = [305, 185, 95];
+        const hue = huePool[Math.floor(Math.random()*huePool.length)];
+        confetti.push({
+          x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s,
+          ax: 0, ay: 0.040,
+          rot: 0, vr: (Math.random()-.5)*12,
+          size: 2 + Math.random()*3,
+          shape: ['circle','strip','rect'][Math.floor(Math.random()*3)],
+          col: Math.random()<0.25? 'rgba(255,255,255,.95)' : `hsl(${hue},95%,60%)`,
+          life: 0, maxLife: 120+Math.random()*80
+        });
+      }
+      if(!fxAnimId) animateFX();
+    }
+
+    function drawRocket(r){
+      fxctx.save();
+      fxctx.translate(r.x, r.y);
+      fxctx.rotate(r.rot||0);
+      const s = r.size;
+
+      // glow outline
+      fxctx.shadowColor = 'rgba(255,0,229,.45)';
+      fxctx.shadowBlur = 24;
+
+      // Body with stripe
+      fxctx.fillStyle = '#e5e7ff';
+      roundRect(fxctx, -s*0.24, -s*0.55, s*0.48, s*0.98, s*0.24, true);
+      fxctx.shadowBlur = 0;
+
+      // stripe
+      fxctx.fillStyle = '#ff287a';
+      fxctx.fillRect(-s*0.24, -s*0.04, s*0.48, s*0.10);
+
+      // nose cone
+      fxctx.beginPath();
+      fxctx.moveTo(0, -s*0.8);
+      fxctx.lineTo(s*0.24, -s*0.55);
+      fxctx.lineTo(-s*0.24, -s*0.55);
+      fxctx.closePath();
+      const noseGrad = fxctx.createLinearGradient(0,-s*0.8,0,-s*0.55);
+      noseGrad.addColorStop(0,'#a1a1ff'); noseGrad.addColorStop(1,'#6967ff');
+      fxctx.fillStyle = noseGrad; fxctx.fill();
+
+      // window (brighter)
+      fxctx.beginPath();
+      fxctx.arc(0,-s*0.22,s*0.16,0,Math.PI*2);
+      const winG = fxctx.createRadialGradient(0,-s*0.22,1, 0,-s*0.22, s*0.16);
+      winG.addColorStop(0,'#dff4ff'); winG.addColorStop(1,'#00eaff');
+      fxctx.fillStyle=winG; fxctx.fill();
+
+      // fins larger
+      fxctx.fillStyle='#ff00e5';
+      fxctx.beginPath(); fxctx.moveTo(-s*0.24, s*0.02); fxctx.lineTo(-s*0.50, s*0.30); fxctx.lineTo(-s*0.24, s*0.30); fxctx.closePath(); fxctx.fill();
+      fxctx.beginPath(); fxctx.moveTo( s*0.24, s*0.02); fxctx.lineTo( s*0.50, s*0.30); fxctx.lineTo( s*0.24, s*0.30); fxctx.closePath(); fxctx.fill();
+
+      // double flame (neon)
+      if(!prefersReduced){
+        const t = (r.life % 6)/6;
+        const flameLen = s*(0.70 + Math.sin(t*Math.PI*2)*0.18);
+        const grd1 = fxctx.createLinearGradient(0,s*0.52,0,s*0.52+flameLen);
+        grd1.addColorStop(0,'#fff7ff'); grd1.addColorStop(0.3,'#ff7be5'); grd1.addColorStop(0.6,'#ff006e'); grd1.addColorStop(1,'rgba(255,0,229,0)');
+        fxctx.fillStyle = grd1;
+        fxctx.beginPath(); fxctx.moveTo(-s*0.16, s*0.52); fxctx.lineTo( s*0.16, s*0.52); fxctx.lineTo( 0, s*0.52+flameLen); fxctx.closePath(); fxctx.fill();
+
+        const grd2 = fxctx.createLinearGradient(0,s*0.52,0,s*0.52+flameLen*0.7);
+        grd2.addColorStop(0,'#e6ffff'); grd2.addColorStop(1,'rgba(0,234,255,0)');
+        fxctx.fillStyle = grd2;
+        fxctx.beginPath(); fxctx.moveTo(-s*0.10, s*0.52); fxctx.lineTo( s*0.10, s*0.52); fxctx.lineTo( 0, s*0.52+flameLen*0.7); fxctx.closePath(); fxctx.fill();
+      }
+      fxctx.restore();
+    }
+    function roundRect(ctx, x, y, w, h, r, fill){
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y, x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x, y+h, r);
+      ctx.arcTo(x, y+h, x, y, r);
+      ctx.arcTo(x, y, x+w, y, r);
+      if(fill) ctx.fill();
+    }
+
+    function launchRocketAt(x, superBurst=false){
+      if(prefersReduced) return;
+      const r = {
+        x,
+        y: FH + 70,
+        vx: (Math.random()-.5)*0.35,
+        vy: -6.5,
+        ax: 0, ay: -0.015,
+        size: 62,
+        rot: 0,
+        life: 0,
+        maxLife: 260,
+        targetY: FH*0.18,
+        super: superBurst,
+        trail: []
+      };
+      rockets.push(r);
+      if(!fxAnimId) animateFX();
+    }
+
+    function triggerFlash(alpha=0.6){ flashAlpha = Math.max(flashAlpha, alpha); if(!fxAnimId) animateFX(); }
+
+    // ===== Core recalc & UI =====
     function applyAchievementUI(pct){
-      const cross = (k,thr,pattern,burst) => {
+      const cross = (k,thr,pattern) => {
         if(pct >= thr){
           $('ms'+k).classList.add('achieved');
           if(!milestones[k]){
             milestones[k] = nowStamp();
             vibrate(pattern);
-            fireConfetti(burst);
-            scheduleSave();
+
+            if(k==='100'){
+              // Finale: 5 rockets (3 center, 2 sides)
+              const center = FW/2;
+              const sideOffset = Math.min(200, FW*0.22);
+              // 3 center
+              launchRocketAt(center, true);
+              setTimeout(()=>launchRocketAt(center, true), 220);
+              setTimeout(()=>launchRocketAt(center, true), 440);
+              // 2 sides
+              setTimeout(()=>launchRocketAt(center - sideOffset, true), 300);
+              setTimeout(()=>launchRocketAt(center + sideOffset, true), 300);
+
+              // super bursts at top (center + sides) & screen flash
+              setTimeout(()=>{
+                const yTop = FH*0.18;
+                neonBurst(center, yTop, 260);
+                neonBurst(center - sideOffset, yTop, 220);
+                neonBurst(center + sideOffset, yTop, 220);
+                triggerFlash(0.6);
+              }, 900);
+            }else{
+              // lower milestones: single center rocket + burst
+              launchRocketAt(window.innerWidth/2, false);
+              setTimeout(()=>neonBurst(window.innerWidth/2, window.innerHeight*0.18, 160), 520);
+            }
+
+            saveNow();
             renderMilestonesMeta();
           }
         }else{
           $('ms'+k).classList.remove('achieved');
         }
       };
-      cross('25', .25, [18], 1.1);
-      cross('50', .50, [20,40,20], 1.3);
-      cross('75', .75, [25,35,25], 1.5);
-      cross('100', 1.0, [60,40,60,40,90], 2.2);
+      cross('25', .25, [18]);
+      cross('50', .50, [20,40,20]);
+      cross('75', .75, [25,35,25]);
+      cross('100', 1.0, [60,40,60,40,90]);
     }
 
     function recalc(){
@@ -372,8 +552,6 @@
       const xpx = Math.max(0, num($('xpx').value));
       const haveXu = Math.max(0, num($('haveXu').value));
       const days = Math.max(0, num($('days').value));
-
-      updateReqLabels(target);
 
       const needPointRaw = Math.max(0, target - havePoint);
       const needTurn = ppx>0 ? Math.ceil(needPointRaw / ppx) : 0;
@@ -391,13 +569,11 @@
       $('needTurn').textContent  = fmtInt(needTurn);
       $('needXu').textContent    = fmtInt(needXu);
       $('lackXu').textContent    = fmtInt(lackXu);
-      $('canNow').textContent    = `${fmtInt(pointNow)} điểm`
+      $('canNow').textContent    = `${fmtInt(pointNow)} điểm`;
       $('perDay').textContent    = `${fmtInt(perDayXu)} xu • ${fmtInt(perDayTurn)} lượt • ${fmtInt(perDayPoint)} điểm`;
 
-      // progress ring
-      const convertiblePoints = pointNow;
       const pctNow = target>0 ? havePoint/target : 0;
-      const pctMax = target>0 ? Math.min(1, (havePoint + convertiblePoints)/target) : 0;
+      const pctMax = target>0 ? Math.min(1, (havePoint + pointNow)/target) : 0;
       const pct = ringMode==='max' ? pctMax : pctNow;
       const circ = 2 * Math.PI * 50;
       $('ring').setAttribute('stroke-dasharray', String(circ));
@@ -406,116 +582,13 @@
       $('bar').style.width = Math.round(pct*100) + '%';
 
       applyAchievementUI(pct);
-
-      if((havePoint + convertiblePoints) >= target && target>0 && !milestones['100']){ fireConfetti(2.0); }
-
-      // Pace logic
-      const tKey = todayKey();
-      if(pace.day !== tKey){ pace.day = tKey; pace.basePoint = havePoint; pace.baseTurns = 0; }
-      if(havePoint < pace.basePoint){ pace.basePoint = havePoint; } // nếu user sửa điểm xuống
-      const gainPoint = Math.max(0, havePoint - pace.basePoint);
-      const doneTurns = ppx>0 ? Math.floor(gainPoint / ppx) : 0;
-      const ratio = perDayPoint>0 ? (gainPoint / perDayPoint) : 0;
-      $('paceTarget').textContent = `${fmtInt(perDayPoint)} điểm • ${fmtInt(perDayTurn)} lượt`;
-      $('paceDone').textContent   = `${fmtInt(gainPoint)} điểm • ${fmtInt(doneTurns)} lượt`;
-      $('paceBar').style.width = Math.min(150, Math.round(ratio*100)) + '%'; // cho phép vượt
-      const pill = $('paceStatus'), em = $('paceEmoji'), txt = $('paceText');
-      pill.classList.remove('good','ok','warn','bad');
-      if(perDayPoint===0){
-        em.textContent = '🎉'; txt.textContent = 'Hoàn thành mục tiêu • Hôm nay không cần đổi'; pill.classList.add('good');
-      }else if(ratio >= 1.2){
-        em.textContent = '🚀'; txt.textContent = `Vượt kế hoạch +${fmtInt(gainPoint - perDayPoint)} điểm`; pill.classList.add('good');
-      }else if(ratio >= 0.9){
-        em.textContent = '✅'; txt.textContent = 'Đúng nhịp (≥90%)'; pill.classList.add('ok');
-      }else if(ratio >= 0.5){
-        em.textContent = '⏳'; txt.textContent = `Chậm nhẹ, cần thêm ~${fmtInt(perDayPoint - gainPoint)} điểm`; pill.classList.add('warn');
-      }else{
-        em.textContent = '⚠️'; txt.textContent = `Chậm nhịp, cần bù ${fmtInt(perDayPoint - gainPoint)} điểm ≈ ${ppx>0?fmtInt(Math.ceil((perDayPoint - gainPoint)/ppx)):'0'} lượt`; pill.classList.add('bad');
-      }
-
-      scheduleSave();
+      saveNow();
     }
 
-    // Confetti engine
-    const fx = $('fx'); const fxctx = fx.getContext('2d'); let FW=0,FH=0;
-    function resizeFx(){ FW=fx.width=window.innerWidth; FH=fx.height=window.innerHeight; }
-    resizeFx(); window.addEventListener('resize', resizeFx);
-    let confetti = []; let animId = null;
-    function spawnBurst(mult=1){
-      const base = Math.floor(120 * mult);
-      const centerX = FW/2, topY = FH*0.15;
-      const sources = [
-        {x:centerX, y:topY, spread:Math.PI/2},
-        {x:centerX*0.35, y:topY+20, spread:Math.PI/2.4},
-        {x:centerX*1.65, y:topY+20, spread:Math.PI/2.4},
-      ];
-      for(const src of sources){
-        for(let i=0;i<base;i++){
-          const angle = -Math.PI/2 + (Math.random()-0.5)*src.spread;
-          const speed = 5 + Math.random()*6*mult;
-          const shape = ['rect','circle','triangle','strip'][Math.floor(Math.random()*4)];
-          const size = 3 + Math.random()*8*mult;
-          const hue = Math.floor(220 + Math.random()*120);
-          confetti.push({
-            x: src.x, y: src.y,
-            vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
-            ax: (Math.random()-.5)*0.02, ay: 0.08,
-            rot: Math.random()*360, vr: (Math.random()-.5)*10,
-            size, shape, col: `hsl(${hue},90%,60%)`, life: 0, maxLife: 300+Math.random()*200
-          });
-        }
-      }
-      const sparks = Math.floor(90 * mult);
-      for(let i=0;i<sparks;i++){
-        const a = Math.random()*Math.PI*2, sp = 3+Math.random()*4;
-        confetti.push({ x:centerX, y:topY, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, ax:0, ay:0.05,
-          rot:0, vr:0, size:2+Math.random()*2, shape:'circle', col:'rgba(255,255,255,.9)', life:0, maxLife:120+Math.random()*60 });
-      }
-    }
-    function fireConfetti(mult=1){ spawnBurst(mult); if(!animId) animateConfetti(); }
-    function drawParticle(p){
-      fxctx.save(); fxctx.translate(p.x, p.y); fxctx.rotate(p.rot*Math.PI/180);
-      fxctx.fillStyle = p.col; fxctx.strokeStyle = p.col;
-      switch(p.shape){
-        case 'rect': fxctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); break;
-        case 'strip': fxctx.fillRect(-p.size/2, -p.size/6, p.size, p.size/3); break;
-        case 'triangle':
-          fxctx.beginPath(); fxctx.moveTo(0, -p.size/1.2); fxctx.lineTo(p.size/1.2, p.size/1.2); fxctx.lineTo(-p.size/1.2, p.size/1.2);
-          fxctx.closePath(); fxctx.fill(); break;
-        default:
-          fxctx.beginPath(); fxctx.arc(0,0,p.size/2,0,Math.PI*2); fxctx.fill();
-      }
-      fxctx.restore();
-    }
-    function animateConfetti(){
-      fxctx.clearRect(0,0,FW,FH);
-      for(let i=confetti.length-1; i>=0; i--){
-        const p = confetti[i];
-        p.vx += p.ax; p.vy += p.ay; p.x += p.vx; p.y += p.vy;
-        p.vx *= 0.996; p.vy *= 0.996; p.rot += p.vr; p.life++;
-        drawParticle(p);
-        if(p.y>FH+60 || p.x<-60 || p.x>FW+60 || p.life>p.maxLife){ confetti.splice(i,1); }
-      }
-      if(confetti.length>0){ animId = requestAnimationFrame(animateConfetti); }
-      else { cancelAnimationFrame(animId); animId = null; fxctx.clearRect(0,0,FW,FH); }
-    }
-
-    // Background stars
-    const bg = $('bg'); const bgctx = bg.getContext('2d'); let BW=0,BH=0,stars=[];
-    function resizeBg(){ BW=bg.width=window.innerWidth; BH=bg.height=window.innerHeight; }
-    resizeBg(); window.addEventListener('resize', resizeBg);
-    function initStars(){ stars = Array.from({length: 140}, () => ({ x: Math.random()*BW, y: Math.random()*BH, r: Math.random()*1.5+0.3, s: Math.random()*0.6+0.2 })); }
-    function drawBg(){ bgctx.clearRect(0,0,BW,BH); bgctx.fillStyle = '#ffffff';
-      for(const st of stars){ bgctx.globalAlpha = .35 + Math.random()*.55; bgctx.beginPath(); bgctx.arc(st.x,st.y,st.r,0,Math.PI*2); bgctx.fill();
-        st.x += st.s*0.2; st.y -= st.s*0.05; if(st.x>BW+10) st.x=-10; if(st.y<-10) st.y=BH+10; }
-      requestAnimationFrame(drawBg); }
-    initStars(); drawBg();
-
-    // Events
     function bindEvents(){
-      $('modeNow').addEventListener('click', ()=>{ ringMode='now'; setModeButtons(); recalc(); scheduleSave(); });
-      $('modeMax').addEventListener('click', ()=>{ ringMode='max'; setModeButtons(); recalc(); scheduleSave(); });
-      $('confettiBtn').addEventListener('click', ()=> fireConfetti(1.2));
+      $('modeNow').addEventListener('click', ()=>{ ringMode='now'; setModeButtons(); recalc(); saveNow(); });
+      $('modeMax').addEventListener('click', ()=>{ ringMode='max'; setModeButtons(); recalc(); saveNow(); });
+      $('confettiBtn').addEventListener('click', ()=> neonBurst(window.innerWidth/2, window.innerHeight*0.3, 160));
       $('copyBtn').onclick = async () => {
         const lines = [
           `Mốc: ${$('target').value}`, `Ngày còn lại: ${$('days').value}`,
@@ -524,29 +597,26 @@
           `Còn thiếu: ${$('needPoint').textContent} điểm`, `Cần đổi: ${$('needTurn').textContent} lượt`,
           `Xu cần: ${$('needXu').textContent} (thiếu: ${$('lackXu').textContent})`,
           `Kế hoạch/ngày: ${$('perDay').textContent}`,
-          `— Pace —`,
-          `Target hôm nay: ${$('paceTarget').textContent}`, `Đã đạt hôm nay: ${$('paceDone').textContent}`, `${$('paceText').textContent}`
+          `— Checklist —`,
+          `25%: ${$('ts25')? $('ts25').textContent : ''}`,
+          `50%: ${$('ts50')? $('ts50').textContent : ''}`,
+          `75%: ${$('ts75')? $('ts75').textContent : ''}`,
+          `100%: ${$('ts100')? $('ts100').textContent : ''}`
         ];
-        try{ await navigator.clipboard.writeText(lines.join('\n')); toast('Đã copy kế hoạch'); }
+        try{ await navigator.clipboard.writeText(lines.join('\n')); toast('Đã copy kế hoạch vào clipboard'); }
         catch(e){ toast('Copy không thành công'); }
       };
       $('resetBtn').onclick = () => {
         ['target','days','havePoint','haveXu','ppx','xpx'].forEach(id => $(id).value = '');
         milestones = { "25": null, "50": null, "75": null, "100": null };
-        pace = { day: todayKey(), basePoint: 0, baseTurns: 0 };
-        try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
         renderMilestonesMeta();
         recalc(); toast('Đã xoá dữ liệu đã lưu');
       };
       $('resetMs').onclick = () => {
         milestones = { "25": null, "50": null, "75": null, "100": null };
         renderMilestonesMeta();
-        scheduleSave();
+        saveNow();
         toast('Đã reset checklist');
-      };
-      $('paceReset').onclick = () => {
-        pace.day = todayKey(); pace.basePoint = num($('havePoint').value); pace.baseTurns = 0;
-        scheduleSave(); recalc(); toast('Đã đặt lại nhịp hôm nay');
       };
       const inputs = Array.from(document.querySelectorAll('input'));
       inputs.forEach(el=>['input','change','keyup','paste','blur'].forEach(ev=> el.addEventListener(ev, recalc)));
@@ -554,10 +624,9 @@
 
     // Init
     document.addEventListener('DOMContentLoaded', ()=>{
-      // init pace basePoint = current points on first load
-      pace.basePoint = num($('havePoint').value);
-      loadSaved(); setModeButtons(); bindEvents(); updateReqLabels(num($('target').value)); renderMilestonesMeta(); recalc();
+      loadSaved(); setModeButtons(); bindEvents(); recalc();
     });
   </script>
 </body>
 </html>
+
