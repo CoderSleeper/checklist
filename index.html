@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planner Đổi Xu → Điểm — v7.3d Rocket Finale • Ultra</title>
+  <title>Planner Đổi Xu → Điểm — v7.3d Rocket Finale • Ultra (Complete Banner • Regex Fixed)</title>
   <style>
     :root{
       --bg:#0a0014; --bg2:#120021;
@@ -85,11 +85,27 @@
     .achieved .tick{background:var(--grad); border-color:transparent}
     .achieved b{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
     .ctl{display:flex; gap:10px; justify-content:flex-end; margin-top:10px}
+
+    .complete{
+      --glow1: .35;
+      --glow2: .22;
+      position:fixed; z-index:99998; left:50%; top:42%;
+      transform:translate(-50%,-50%); pointer-events:none;
+      font-weight:1000; text-transform:uppercase; letter-spacing:.14em;
+      font-size:clamp(32px,10vw,120px);
+      background:linear-gradient(135deg,#ffd07a,#fff3d1 45%,#ffb35c);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow: 0 0 18px rgba(255,200,40,var(--glow1)), 0 0 36px rgba(255,140,0,var(--glow2));
+      opacity:0; filter:drop-shadow(0 0 8px rgba(255,200,40,.2));
+      transition:opacity .4s ease, transform .6s ease;
+    }
+    .complete.show{ opacity:1; transform:translate(-50%,-50%) scale(1.02); }
   </style>
 </head>
 <body>
   <canvas id="bg"></canvas>
   <canvas id="fx"></canvas>
+  <div id="complete" class="complete" aria-hidden="true">COMPLETE</div>
 
   <header>
     <h1><span class="brand">Planner đổi Xu → Điểm</span> <span style="opacity:.85">• Rocket Finale v7.3d</span></h1>
@@ -202,9 +218,16 @@
   <script>
   // ===== Helpers & State =====
   const $ = (id) => document.getElementById(id);
-  const STORAGE_KEY = 'shooting_star_planner_v7_3d_ultra';
+  const STORAGE_KEY = 'shooting_star_planner_v7_3d_ultra_complete_regexfix';
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const num = (v) => { if(typeof v !== 'string') v = String(v ?? ''); v = v.replace(/[^\d\-,.]/g,'').replace(/,/g,''); const sign = v.trim().startsWith('-') ? -1 : 1; v = v.replace(/-/g,''); const out = parseFloat(v); return isNaN(out) ? 0 : out * sign; };
+  const num = (v) => { 
+    if(typeof v !== 'string') v = String(v ?? ''); 
+    v = v.replace(/[^\d,.\-]/g,'').replace(/,/g,''); 
+    const sign = v.trim().startsWith('-') ? -1 : 1; 
+    v = v.replace(/-/g,''); 
+    const out = parseFloat(v); 
+    return isNaN(out) ? 0 : out * sign; 
+  };
   const fmtInt = (x) => new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.floor(x)));
   const nowStamp = () => new Date().toLocaleString('vi-VN');
   const toast = (t="Đã copy") => { const el = $('toast'); el.textContent = t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1600); };
@@ -212,7 +235,6 @@
   let ringMode='now';
   let milestones = { "25": null, "50": null, "75": null, "100": null };
   let settings = { haptics: true };
-  // Flags cho hiệu ứng Finale
   let finalePlayed = false;
   window.forceFX = false;
 
@@ -255,47 +277,75 @@
 
   // ===== Background stars =====
   const bg = $('bg'); const bgctx = bg.getContext('2d'); let BW=0,BH=0,stars=[]; let starAnimOn = true;
+  let starFade = 1.0, starFadeTarget = 1.0; let starFadeEase = 0.04;
+  let afterglow = 0.0;
   function resizeBg(){ BW=bg.width=window.innerWidth; BH=bg.height=window.innerHeight; }
   resizeBg(); window.addEventListener('resize', resizeBg);
   function initStars(){ stars = Array.from({length: 170}, () => ({ x: Math.random()*BW, y: Math.random()*BH, r: Math.random()*1.5+0.3, s: Math.random()*0.6+0.2, c: Math.random()<.5?'#fff':(Math.random()<.5?'#ff00e5':'#00eaff') })); }
-  function drawBg(){ if(!starAnimOn){ requestAnimationFrame(drawBg); return; }
+  function drawBg(){ if(!starAnimOn){ if(afterglow>0){ const g=bgctx.createRadialGradient(BW/2,BH*0.18, 10, BW/2,BH*0.18, Math.max(BW,BH)*0.9);
+      g.addColorStop(0, `rgba(255,240,200,${afterglow*0.18})`);
+      g.addColorStop(1, 'rgba(255,240,200,0)');
+      bgctx.fillStyle=g; bgctx.fillRect(0,0,BW,BH);
+      afterglow = Math.max(0, afterglow - 0.004); }
+    requestAnimationFrame(drawBg); return; }
     bgctx.clearRect(0,0,BW,BH);
-    for(const st of stars){ bgctx.globalAlpha = .35 + Math.random()*.55; bgctx.fillStyle = st.c; bgctx.beginPath(); bgctx.arc(st.x,st.y,st.r,0,Math.PI*2); bgctx.fill();
+    starFade += (starFadeTarget - starFade)*starFadeEase;
+    for(const st of stars){ bgctx.globalAlpha = (.35 + Math.random()*.55) * starFade; bgctx.fillStyle = st.c; bgctx.beginPath(); bgctx.arc(st.x,st.y,st.r,0,Math.PI*2); bgctx.fill();
       st.x += st.s*0.2; st.y -= st.s*0.05; if(st.x>BW+10) st.x=-10; if(st.y<-10) st.y=BH+10; }
+    if(afterglow>0){ const g=bgctx.createRadialGradient(BW/2,BH*0.18, 10, BW/2,BH*0.18, Math.max(BW,BH)*0.9);
+      g.addColorStop(0, `rgba(255,240,200,${afterglow*0.18})`);
+      g.addColorStop(1, 'rgba(255,240,200,0)');
+      bgctx.fillStyle=g; bgctx.fillRect(0,0,BW,BH);
+      afterglow = Math.max(0, afterglow - 0.004); }
     requestAnimationFrame(drawBg);
   }
   initStars(); drawBg(); document.addEventListener('visibilitychange', ()=>{ starAnimOn = !document.hidden; });
 
-  // ===== FX Engine (confetti + rockets + flash + shockwave + distortion + meteor rain) =====
+  // ===== FX Engine =====
   const fx = $('fx'); const fxctx = fx.getContext('2d'); let FW=0,FH=0;
   function resizeFx(){ FW=fx.width=window.innerWidth; FH=fx.height=window.innerHeight; }
   resizeFx(); window.addEventListener('resize', resizeFx);
 
   let confetti = [], rockets = [], shockwaves = [], distort = [], meteors = [];
-  // Bảng màu riêng cho mưa sao băng (khác hẳn confetti)
+
+  let lastT = performance.now();
+  let avgFT = 16.7;
+  const perfEase = 0.1;
+  function perfLevel(){
+    const t = Math.max(0, Math.min(1, (50 - avgFT) / (50 - 16)));
+    return 0.2 + t*0.8;
+  }
+  function noise1D(t){
+    return Math.sin(t*1.7)*0.62 + Math.sin(t*3.1+1.234)*0.28 + Math.sin(t*5.3+2.345)*0.10;
+  }
+
   const METEOR_COLORS = [
-    'rgba(255,200,40,0.95)',   // gold ấm
-    'rgba(255,140,0,0.95)',    // orange rực
-    'rgba(255,255,220,0.95)'   // white ấm
+    'rgba(255,200,40,0.95)',
+    'rgba(255,140,0,0.95)',
+    'rgba(255,255,220,0.95)'
   ];
 
   let fxAnimId = null, flashAlpha = 0;
 
   function animateFX(){
+    const nowT = performance.now();
+    const dt = nowT - lastT; lastT = nowT;
+    avgFT = avgFT*(1-perfEase) + dt*perfEase;
+    const pL = perfLevel();
     fxctx.clearRect(0,0,FW,FH);
 
-    // Rockets
     for(let i=rockets.length-1;i>=0;i--){
       const r = rockets[i];
       if(!prefersReduced){
-        for(let k=0;k<5;k++){
+        const TRAIL_P = Math.max(1, Math.round(5 * pL)); for(let k=0;k<TRAIL_P;k++){
           const hue = Math.random()<0.5? 305 : 185;
           confetti.push({ x:r.x+(Math.random()-0.5)*6, y:r.y+r.size/2+Math.random()*2, vx:(Math.random()-.5)*0.5, vy:1.4+Math.random()*1.6,
             ax:0, ay:0.02, rot:0, vr:0, size:2+Math.random()*3, shape:'circle', col:`hsl(${hue},92%,60%)`, life:0, maxLife:70+Math.random()*50 });
         }
       }
+      { const t = nowT*0.001 + r.life*0.015; r.vx += noise1D(t)*0.06; }
       r.vy += r.ay; r.x += r.vx; r.y += r.vy; r.life++;
-      r.trail.unshift({x:r.x, y:r.y}); if(r.trail.length>28) r.trail.pop();
+      r.trail.unshift({x:r.x, y:r.y}); const TRAIL_MAX = Math.round(28 * (0.7 + 0.3*pL)); if(r.trail.length>TRAIL_MAX) r.trail.pop();
       drawTrail(r); drawRocket(r);
       if(r.y < r.targetY || r.life > r.maxLife){
         if(!r.exploded){
@@ -309,13 +359,11 @@
       }
     }
 
-    // Confetti
     for(let i=confetti.length-1;i>=0;i--){
       const p=confetti[i]; p.vx+=p.ax; p.vy+=p.ay; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++; drawParticle(p);
       if(p.y>FH+60||p.x<-60||p.x>FW+60||p.life>p.maxLife) confetti.splice(i,1);
     }
 
-    // Shockwaves
     for(let i=shockwaves.length-1;i>=0;i--){
       const s=shockwaves[i]; s.r+=s.vr; s.alpha*=s.fade; s.w*=s.fadeW;
       fxctx.save(); fxctx.globalCompositeOperation='screen';
@@ -324,7 +372,6 @@
       if(s.alpha<0.02||s.r>Math.max(FW,FH)) shockwaves.splice(i,1);
     }
 
-    // Heat-distortion ripples (fake refractive ring)
     for(let i=distort.length-1;i>=0;i--){
       const d=distort[i]; d.life++;
       const t=d.life/d.maxLife; const r=d.r + (d.maxR-d.r)*t;
@@ -340,34 +387,32 @@
       if(t>=1) distort.splice(i,1);
     }
 
-    
-    // Meteors (mưa sao băng: màu riêng + glow + đầu sao)
     for(let i=meteors.length-1;i>=0;i--){
       const m=meteors[i];
+      { const t = nowT*0.001 + m.life*0.02; m.ax += noise1D(t)*0.002; }
       m.vx+=m.ax; m.vy+=m.ay; m.x+=m.vx; m.y+=m.vy; m.life++;
 
-      // trail (vệt đuôi) có glow nhẹ
       fxctx.save();
-      fxctx.globalAlpha = Math.max(0, 1 - m.life/m.maxLife);
+      fxctx.globalAlpha = Math.max(0, 1 - m.life/(m.maxLife||220));
       fxctx.shadowColor = m.col;
-      fxctx.shadowBlur = 8;
+      fxctx.shadowBlur = 4 + 6*pL;
       fxctx.strokeStyle = m.col;
-      fxctx.lineWidth = 2;
+      fxctx.lineWidth = 1 + 1.2*pL;
       fxctx.beginPath();
       fxctx.moveTo(m.x, m.y);
       fxctx.lineTo(m.x - m.vx*6, m.y - m.vy*6);
       fxctx.stroke();
 
-      // "đầu sao" sáng hơn một chút
       fxctx.fillStyle = m.col;
       fxctx.beginPath();
       fxctx.arc(m.x, m.y, 2.2, 0, Math.PI*2);
       fxctx.fill();
       fxctx.restore();
 
-      if(m.y>FH+40 || m.x<-40 || m.life>m.maxLife) meteors.splice(i,1);
+      if(m.y>FH+40 || m.x<-40 || m.life>(m.maxLife||220)) meteors.splice(i,1);
     }
-if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillRect(0,0,FW,FH); flashAlpha-=0.05; }
+
+    if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillRect(0,0,FW,FH); flashAlpha-= (0.03 + 0.04*(1-pL)); }
 
     if(confetti.length>0||rockets.length>0||shockwaves.length>0||distort.length>0||meteors.length>0||flashAlpha>0){
       fxAnimId=requestAnimationFrame(animateFX);
@@ -389,23 +434,26 @@ if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillR
     if(!fxAnimId) animateFX();
   }
 
-  function spawnMeteorRain(duration=1000, density=26){
-    const start=performance.now();
-    function pump(){
-      const t=performance.now()-start;
-      for(let i=0;i<density*0.2;i++){
-        meteors.push({
-          x: Math.random()*FW + 40, y: -20*Math.random(),
-          vx: -3.8 - Math.random()*1.8, vy: 7.5 + Math.random()*3.5,
-          ax: 0, ay: 0.02,
-          life:0, maxLife: 70 + Math.random()*30,
-          col: METEOR_COLORS[Math.floor(Math.random()*METEOR_COLORS.length)]
-        });
+  function spawnMeteorRain(duration=1200, density=25, onPulse){
+    const start = performance.now();
+    const tick = 28;
+    const timer = setInterval(()=>{
+      const now = performance.now();
+      if(now - start > duration){ clearInterval(timer); return; }
+      let densEff = density;
+      try{ if(typeof perfLevel==='function') densEff = Math.max(3, Math.round(density * (0.45 + 0.55*perfLevel()))); }catch(e){}
+      for(let i=0;i<Math.max(1, Math.round(densEff*0.2)); i++){
+        const side = Math.random()<0.5? -1 : 1;
+        const x0 = (side<0)? -40 : (window.innerWidth+40);
+        const y0 = -40 - Math.random()*80;
+        const vx = (side<0? 1 : -1) * (2.2 + Math.random()*1.6);
+        const vy = 5.2 + Math.random()*2.4;
+        const col = Math.random()<0.5? '#ffd07a' : (Math.random()<0.5? '#fff3d1' : '#ffb35c');
+        meteors.push({ x:x0, y:y0, vx, vy, ax:0, ay:0.02, life:0, col, maxLife:220 });
       }
-      if(t<duration){ requestAnimationFrame(pump); }
+      if(typeof onPulse === 'function') onPulse();
       if(!fxAnimId) animateFX();
-    }
-    pump();
+    }, tick);
   }
 
   function drawTrail(r){
@@ -427,7 +475,7 @@ if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillR
     fxctx.restore();
   }
   function neonBurst(x,y,count=160){
-    const N=count;
+    const N = Math.max(20, Math.round(count * (0.5 + 0.5*perfLevel())));
     for(let i=0;i<N;i++){
       const a=Math.random()*Math.PI*2, s=2+Math.random()*4.4;
       const huePool=[305,185,95]; const hue=huePool[Math.floor(Math.random()*huePool.length)];
@@ -451,9 +499,15 @@ if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillR
     fxctx.beginPath(); fxctx.moveTo(s*0.24,s*0.02); fxctx.lineTo(s*0.50,s*0.30); fxctx.lineTo(s*0.24,s*0.30); fxctx.closePath(); fxctx.fill();
     if(!prefersReduced){
       const t=(r.life%6)/6; const L=s*(0.70+Math.sin(t*Math.PI*2)*0.18);
-      const g1=fxctx.createLinearGradient(0,s*0.52,0,s*0.52+L); g1.addColorStop(0,'#fff7ff'); g1.addColorStop(0.3,'#ff7be5'); g1.addColorStop(0.6,'#ff006e'); g1.addColorStop(1,'rgba(255,0,229,0)');
+      const g1=fxctx.createLinearGradient(0,s*0.52,0,s*0.52+L);
+      g1.addColorStop(0,'#fff2cc');
+      g1.addColorStop(0.35,'#ffc04d');
+      g1.addColorStop(0.7,'#ff5a00');
+      g1.addColorStop(1,'rgba(255,90,0,0)');
       fxctx.fillStyle=g1; fxctx.beginPath(); fxctx.moveTo(-s*0.16,s*0.52); fxctx.lineTo(s*0.16,s*0.52); fxctx.lineTo(0,s*0.52+L); fxctx.closePath(); fxctx.fill();
-      const g2=fxctx.createLinearGradient(0,s*0.52,0,s*0.52+L*0.7); g2.addColorStop(0,'#e6ffff'); g2.addColorStop(1,'rgba(0,234,255,0)');
+      const g2=fxctx.createLinearGradient(0,s*0.52,0,s*0.52+L*0.7);
+      g2.addColorStop(0,'#ffe8a3');
+      g2.addColorStop(1,'rgba(255,160,0,0)');
       fxctx.fillStyle=g2; fxctx.beginPath(); fxctx.moveTo(-s*0.10,s*0.52); fxctx.lineTo(s*0.10,s*0.52); fxctx.lineTo(0,s*0.52+L*0.7); fxctx.closePath(); fxctx.fill();
     }
     fxctx.restore();
@@ -465,116 +519,130 @@ if(flashAlpha>0){ fxctx.fillStyle=`rgba(255,255,255,${flashAlpha})`; fxctx.fillR
     rockets.push(r); if(!fxAnimId) animateFX();
   }
 
-  // ===== Core recalc & UI =====
-  
-
-
-function playFinale(){
-  // Cinematic pacing: chậm, có khoảng thở giữa từng mảng hiệu ứng
-  window.forceFX = true;
-  const center = window.innerWidth/2;
-  const sideOffset = Math.min(240, window.innerWidth*0.25);
-  const yTopBase = window.innerHeight*0.18;
-
-  // (1) Sao băng trước — dài và đều hơn
-  // giảm mật độ chút xíu để giữ mượt khi kéo dài
-  spawnMeteorRain(2200, 24);
-
-  // (2) Rocket: delay rộng, nhịp chậm
-  const rocketsPos = [
-    {x:center, super:true, side:false},
-    {x:center, super:true, side:false},
-    {x:center, super:true, side:false},
-    {x:center - sideOffset, super:true, side:true},
-    {x:center + sideOffset, super:true, side:true},
-  ];
-  // shuffle thứ tự
-  for (let i = rocketsPos.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rocketsPos[i], rocketsPos[j]] = [rocketsPos[j], rocketsPos[i]];
+  // COMPLETE sync
+  let completeHideTimer = null;
+  function pulseComplete(){
+    const el = $('complete');
+    if(!el || !el.classList.contains('show')) return;
+    const t = performance.now();
+    const s = (Math.sin(t/220)+1)/2;
+    const a1 = 0.22 + s*0.50;
+    const a2 = 0.12 + s*0.40;
+    el.style.setProperty('--glow1', a1.toFixed(3));
+    el.style.setProperty('--glow2', a2.toFixed(3));
+  }
+  function showComplete(ms = 8000){
+    const el = $('complete');
+    if(!el) return;
+    el.classList.add('show');
+    if(completeHideTimer) clearTimeout(completeHideTimer);
+    completeHideTimer = setTimeout(()=>{
+      el.classList.remove('show');
+      el.style.removeProperty('--glow1');
+      el.style.removeProperty('--glow2');
+    }, ms);
   }
 
-  let maxDelay = 0;
-  const rocketFlightMs = 1600; // bay lâu hơn trước khi nổ
+  function playFinale(){
+    window.forceFX = true;
+    const center = window.innerWidth/2;
+    const sideOffset = Math.min(240, window.innerWidth*0.25);
+    const yTopBase = window.innerHeight*0.18;
 
-  rocketsPos.forEach((r,i)=>{
-    const base = r.side ? 2600 : 2000; // side trễ hơn center
-    const delay = Math.floor(Math.random()*base) + Math.floor(Math.random()*80)*i; // giãn nhịp
-    if(delay>maxDelay) maxDelay = delay;
-    setTimeout(()=>{
-      // ±10% độ cao nổ để đa dạng khung hình
-      const jitter = 0.9 + Math.random()*0.20;
-      const targetY = yTopBase * jitter;
-      const rocket = {
-        x:r.x, y:window.innerHeight+70,
-        vx:(Math.random()-.5)*0.25, vy:-5.6, ax:0, ay:-0.012, // bay chậm hơn
-        size:62, rot:0, life:0, maxLife:320,                  // sống lâu hơn
-        targetY, super:r.super, trail:[], exploded:false
-      };
-      rockets.push(rocket);
-      if(!fxAnimId) animateFX();
-
-      // 20% double-burst: chậm hơn
-      if(Math.random() < 0.20){
-        setTimeout(()=>{
-          const jitter2 = 0.9 + Math.random()*0.20;
-          const rocket2 = {
-            x: r.x + (Math.random()-.5)*16, y: window.innerHeight+70,
-            vx:(Math.random()-.5)*0.25, vy:-5.6, ax:0, ay:-0.012,
-            size:62, rot:0, life:0, maxLife:320,
-            targetY: yTopBase * jitter2, super:r.super, trail:[], exploded:false
-          };
-          rockets.push(rocket2);
-          if(!fxAnimId) animateFX();
-        }, 260 + Math.floor(Math.random()*520));
-      }
-    }, delay);
-  });
-
-  // (3) Pháo bông sau cùng — bung trễ rõ rệt
-  setTimeout(()=>{
-    const yTop = yTopBase;
-    // giảm count nhẹ để giữ nhịp "cinematic", đỡ lóa
-    neonBurst(center,yTop,220);
-    neonBurst(center-sideOffset,yTop,180);
-    neonBurst(center+sideOffset,yTop,180);
-    addShockwave(center,yTop,2);
-    addShockwave(center-sideOffset,yTop,1);
-    addShockwave(center+sideOffset,yTop,1);
-    addDistortion(center,yTop);
-    addDistortion(center-sideOffset,yTop);
-    addDistortion(center+sideOffset,yTop);
-    screenFlash(0.55);
-    // kết thúc: nới thời gian xả hiệu ứng
-    setTimeout(()=>{ window.forceFX = false; }, 2400);
-  }, Math.min(4800, maxDelay + rocketFlightMs + 900));
-}
-function applyAchievementUI(pct){
-  const cross=(k,thr,pattern)=>{
-    if(pct>=thr){
-      $('ms'+k).classList.add('achieved');
-      if(!milestones[k]){
-        milestones[k]=nowStamp(); vibrate(pattern);
-        if(k==='100'){
-          playFinale();
-        } else {
-          const cx=window.innerWidth/2, cy=window.innerHeight*0.18;
-          launchRocketAt(cx,false);
-          setTimeout(()=>{ neonBurst(cx,cy,160); addShockwave(cx,cy,1); addDistortion(cx,cy); },520);
-        }
-        saveNow(); renderMilestonesMeta();
-      }
-    } else {
-      $('ms'+k).classList.remove('achieved');
+    const rocketsPos = [
+      {x:center, super:true, side:false},
+      {x:center, super:true, side:false},
+      {x:center, super:true, side:false},
+      {x:center - sideOffset, super:true, side:true},
+      {x:center + sideOffset, super:true, side:true},
+    ];
+    for (let i = rocketsPos.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rocketsPos[i], rocketsPos[j]] = [rocketsPos[j], rocketsPos[i]];
     }
-  };
-  cross('25',.25,[18]);
-  cross('50',.50,[20,40,20]);
-  cross('75',.75,[25,35,25]);
-  cross('100',1.0,[60,40,60,40,90]);
-}
-function
- recalc(){
+
+    let maxDelay = 0;
+    const rocketFlightMs = 1600;
+
+    rocketsPos.forEach((r,i)=>{
+      const base = r.side ? 2600 : 2000;
+      const delay = Math.floor(Math.random()*base) + Math.floor(Math.random()*80)*i;
+      if(delay>maxDelay) maxDelay = delay;
+      setTimeout(()=>{
+        const jitter = 0.9 + Math.random()*0.20;
+        const targetY = yTopBase * jitter;
+        const rocket = {
+          x:r.x, y:window.innerHeight+70,
+          vx:(Math.random()-.5)*0.25, vy:-5.6, ax:0, ay:-0.012,
+          size:62, rot:0, life:0, maxLife:320,
+          targetY, super:r.super, trail:[], exploded:false
+        };
+        rockets.push(rocket);
+        if(!fxAnimId) animateFX();
+
+        if(Math.random() < 0.20){
+          setTimeout(()=>{
+            const jitter2 = 0.9 + Math.random()*0.20;
+            const rocket2 = {
+              x: r.x + (Math.random()-.5)*16, y: window.innerHeight+70,
+              vx:(Math.random()-.5)*0.25, vy:-5.6, ax:0, ay:-0.012,
+              size:62, rot:0, life:0, maxLife:320,
+              targetY: yTopBase * jitter2, super:r.super, trail:[], exploded:false
+            };
+            rockets.push(rocket2);
+            if(!fxAnimId) animateFX();
+          }, 260 + Math.floor(Math.random()*520));
+        }
+      }, delay);
+    });
+
+    setTimeout(()=>{
+      const yTop = yTopBase;
+      neonBurst(center,yTop,220);
+      neonBurst(center-sideOffset,yTop,180);
+      neonBurst(center+sideOffset,yTop,180);
+      addShockwave(center,yTop,2);
+      addShockwave(center-sideOffset,yTop,1);
+      addShockwave(center+sideOffset,yTop,1);
+      addDistortion(center,yTop);
+      addDistortion(center-sideOffset,yTop);
+      addDistortion(center+sideOffset,yTop);
+      screenFlash(0.55);
+
+      setTimeout(()=>{
+        spawnMeteorRain(1600, 26, pulseComplete);
+        showComplete(8000);
+      }, 300);
+
+      setTimeout(()=>{ window.forceFX = false; }, 2400);
+    }, Math.min(4800, maxDelay + rocketFlightMs + 900 + Math.round((1 - perfLevel())*400)) );
+  }
+
+  function applyAchievementUI(pct){
+    const cross=(k,thr,pattern)=>{
+      if(pct>=thr){
+        $('ms'+k).classList.add('achieved');
+        if(!milestones[k]){
+          milestones[k]=nowStamp(); vibrate(pattern);
+          if(k==='100'){
+            playFinale();
+          } else {
+            const cx=window.innerWidth/2, cy=window.innerHeight*0.18;
+            launchRocketAt(cx,false);
+            setTimeout(()=>{ neonBurst(cx,cy,160); addShockwave(cx,cy,1); addDistortion(cx,cy); },520);
+          }
+          saveNow(); renderMilestonesMeta();
+        }
+      } else {
+        $('ms'+k).classList.remove('achieved');
+      }
+    };
+    cross('25',.25,[18]);
+    cross('50',.50,[20,40,20]);
+    cross('75',.75,[25,35,25]);
+    cross('100',1.0,[60,40,60,40,90]);
+  }
+  function recalc(){
     const target=num($('target').value);
     const havePoint=num($('havePoint').value);
     const ppx=Math.max(0,num($('ppx').value));
@@ -607,7 +675,6 @@ function
     $('ring').setAttribute('stroke-dashoffset', String(circ * (1 - pct)));
     $('pct').textContent=Math.round(pct*100)+'%';
     $('bar').style.width=Math.round(pct*100)+'%';
-    // Auto play Finale once per session when đạt 100%
     if(pct>=1 && !finalePlayed){ playFinale(); finalePlayed=true; }
     applyAchievementUI(pct); saveNow();
   }
@@ -631,7 +698,7 @@ function
         `75%: ${$('ts75')? $('ts75').textContent : ''}`,
         `100%: ${$('ts100')? $('ts100').textContent : ''}`
       ];
-      try{ await navigator.clipboard.writeText(lines.join('\\n')); toast('Đã copy kế hoạch vào clipboard'); }
+      try{ await navigator.clipboard.writeText(lines.join('\n')); toast('Đã copy kế hoạch vào clipboard'); }
       catch(e){ toast('Copy không thành công'); }
     };
     $('resetBtn').onclick = () => {
@@ -650,7 +717,6 @@ function
     inputs.forEach(el=>['input','change','keyup','paste','blur'].forEach(ev=> el.addEventListener(ev, recalc)));
   }
 
-  // Init
   document.addEventListener('DOMContentLoaded', ()=>{ loadSaved(); setModeButtons(); bindEvents(); recalc(); });
   </script>
 </body>
