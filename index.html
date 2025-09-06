@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planner Đổi Xu → Điểm — v7.3d • Ultra (Complete Banner • Regex Fixed)</title>
+  <title>Planner Đổi Xu → Điểm — v7.3d Rocket Finale • Ultra (Complete Banner • Regex Fixed)</title>
   <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap');
+body{font-family:'Noto Sans',sans-serif;}
     :root{
       --bg:#0a0014; --bg2:#120021;
       --neon1:#ff00e5; --neon2:#00eaff; --neon3:#9dff00;
@@ -100,7 +102,187 @@
       transition:opacity .4s ease, transform .6s ease;
     }
     .complete.show{ opacity:1; transform:translate(-50%,-50%) scale(1.02); }
-  </style>
+    .hidden{display:none !important;}
+    /* === Badge Chips & Promo Emphasis === */
+    /* Progress Ring Planet */
+    .ringWrap{position:relative;}
+    .planet{position:absolute;top:0;left:0;width:120px;height:120px;animation:orbit 6s linear infinite;pointer-events:none;opacity:.85;}
+    .planet::before{content:'';position:absolute;top:50%;left:50%;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;transform:translate(-50%,-60px);}
+    @keyframes orbit{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .planet{animation:none}
+  .bar > span{animation:none}
+}
+
+    /* Milestone pulse animation */
+    .cl li.achieved.pulse{animation:pulseGlow .6s ease; transform-origin:center;}
+    @keyframes pulseGlow{
+      0%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0);}
+      50%{transform:scale(1.08);box-shadow:0 0 14px rgba(255,255,200,.55);}
+      100%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0);}
+    }
+
+    /* Cinematic progress bar */
+    .bar > span{
+      background:linear-gradient(90deg,#ff00e5,#00eaff,#9dff00);
+      background-size:200% 100%;
+      animation:moveGrad 2s linear infinite;
+    }
+    @keyframes moveGrad{0%{background-position:0 0;}100%{background-position:200% 0;}}
+    .bar.completeBar{animation:shake .5s;filter:brightness(1.6);}
+    @keyframes shake{
+      0%,100%{transform:translateX(0);}
+      20%{transform:translateX(-4px);}
+      40%{transform:translateX(4px);}
+      60%{transform:translateX(-3px);}
+      80%{transform:translateX(3px);}
+    }
+
+    /* Cinematic progress bar (smoother + left-to-right sheen) */
+    .bar{position:relative; overflow:hidden;}
+    .bar > span{
+      position:relative;
+      background:linear-gradient(90deg,#ff00e5,#00eaff,#9dff00);
+      background-size:200% 100%;
+      animation:moveGrad 4s linear infinite;   /* chậm hơn và mượt hơn */
+      transition:width .6s cubic-bezier(.22,1,.36,1);
+      will-change: width;
+    }
+    .bar > span::after{
+      content:''; position:absolute; top:0; bottom:0; width:40%;
+      left:-40%; 
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      filter:blur(1px);
+      animation:sheen 2.2s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes sheen{ 
+      0%{ transform:translateX(0); }
+      100%{ transform:translateX(250%); }
+    }
+    @keyframes moveGrad{0%{background-position:0 0;}100%{background-position:200% 0;}}
+    @media (prefers-reduced-motion: reduce){
+      .bar > span{animation:none}
+      .bar > span::after{display:none}
+    }
+
+    .badgeWrap{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+    .badge{
+      padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);
+      box-shadow:0 0 10px rgba(0,234,255,.22), inset 0 0 0 1px rgba(255,255,255,.08);
+      letter-spacing:.02em; white-space:nowrap;
+    }
+    .badge.purple{background:linear-gradient(135deg,#ff00e533,#00eaff22)}
+    .badge.blue{background:linear-gradient(135deg,#00eaff33,#9dff0022)}
+    .badge.green{background:linear-gradient(135deg,#9dff0033,#ff00e522)}
+    .badge.orange{background:linear-gradient(135deg,#ffb35c33,#ffd07a22)}
+    .badge.gold{background:linear-gradient(135deg,#ffd07a44,#fff3d122); border-color:#ffd07a77; box-shadow:0 0 14px rgba(255,208,122,.28)}
+    .stat.promo{
+      border:1px solid #ffd07a88;
+      box-shadow:0 0 26px rgba(255,208,122,.20), inset 0 0 0 1px rgba(255,255,255,.06);
+      background:linear-gradient(135deg, rgba(255,208,122,.12), rgba(255,243,209,.06));
+    }
+    .stat.promo b{font-size:18px; text-shadow:0 0 12px rgba(255,208,122,.35)}
+    /* Checklist polishing */
+    .checkCard{position:relative;}
+    .cl li{position:relative; background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));}
+.cl li + li{border-top:1px solid rgba(255,255,255,.07);} 
+.cl li:last-child{border-bottom:1px solid rgba(255,255,255,.07);} 
+.cl li.achieved{box-shadow:inset 0 0 0 1px rgba(255,208,122,.35), 0 0 0 0 rgba(0,0,0,0);}
+    .cl li.achieved .tick{box-shadow:0 0 10px rgba(255,208,122,.4);}
+
+
+  
+    /* === Smooth Progress Bar v2 (hue-rotate + soft sheen) === */
+    .bar{position:relative; overflow:hidden; border-radius:999px;}
+    .bar > span{
+      position:relative;
+      background:linear-gradient(90deg,#70ff00,#00ffd5);
+      animation:none; /* stop previous rainbow slide */
+      transition:width .7s cubic-bezier(.22,1,.36,1), filter 1.2s ease;
+      will-change: width, filter;
+      filter:hue-rotate(0deg);
+    }
+    /* slow, continuous hue shift for smoother perceived motion */
+    .bar.animateHue > span{ animation: hueShift 8s linear infinite; }
+    @keyframes hueShift{
+      0%{ filter:hue-rotate(0deg); }
+      100%{ filter:hue-rotate(360deg); }
+    }
+    .bar > span::after{
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.35) 50%, transparent 100%);
+      mix-blend-mode:screen; opacity:.45;
+      transform:translateX(-100%);
+      animation: sheenSoft 2.8s ease-in-out infinite;
+    }
+    @keyframes sheenSoft{
+      0%{ transform:translateX(-100%); opacity:.0; }
+      15%{ opacity:.45; }
+      70%{ opacity:.25; }
+      100%{ transform:translateX(100%); opacity:0; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .bar.animateHue > span{ animation:none; }
+      .bar > span::after{ display:none; }
+    }
+
+
+    .cl li.achieved::before{
+      content:''; position:absolute; inset:-2px; border-radius:14px;
+      background:radial-gradient(60% 60% at 15% 50%, rgba(255,208,122,.18), transparent 70%);
+      pointer-events:none;
+    }
+
+
+    /* === Progress Bar Glow Stages === */
+    .bar{position:relative; overflow:hidden; border-radius:999px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
+    .bar > span{
+      position:relative;
+      background:linear-gradient(90deg,#70ff00,#00ffd5);
+      transition:width .7s cubic-bezier(.22,1,.36,1), filter 1.2s ease, box-shadow .6s ease;
+      will-change: width, filter, box-shadow;
+      filter:hue-rotate(0deg);
+    }
+    .bar.animateHue > span{ animation: hueShift 10s linear infinite; }
+    @keyframes hueShift{0%{filter:hue-rotate(0deg);}100%{filter:hue-rotate(360deg);}}
+    .bar > span::after{
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.35) 50%, transparent 100%);
+      mix-blend-mode:screen; opacity:.45;
+      transform:translateX(-100%);
+      animation: sheenSoft 3s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes sheenSoft{0%{transform:translateX(-100%);opacity:0;}25%{opacity:.45;}70%{opacity:.25;}100%{transform:translateX(100%);opacity:0;}}
+    /* Glow by stage classes on .bar */
+    .bar.stage25 > span{ box-shadow: 0 0 14px rgba(0,255,170,.45), 0 0 32px rgba(0,255,170,.2); }
+    .bar.stage50 > span{ box-shadow: 0 0 16px rgba(0,153,255,.55), 0 0 36px rgba(0,153,255,.25); }
+    .bar.stage75 > span{ box-shadow: 0 0 18px rgba(255,136,0,.6), 0 0 44px rgba(255,136,0,.3); }
+    .bar.stage100 > span{ box-shadow: 0 0 22px rgba(255,215,0,.7), 0 0 60px rgba(255,215,0,.35); }
+
+
+    /* === Checklist milestone colors === */
+    #ms25.achieved{ background:rgba(0,255,170,.10); border-color:rgba(0,255,170,.45); box-shadow:0 0 14px rgba(0,255,170,.28); }
+    #ms50.achieved{ background:rgba(0,153,255,.10); border-color:rgba(0,153,255,.45); box-shadow:0 0 14px rgba(0,153,255,.28); }
+    #ms75.achieved{ background:rgba(255,136,0,.10); border-color:rgba(255,136,0,.55); box-shadow:0 0 18px rgba(255,136,0,.35); }
+    #ms100.achieved{ background:rgba(255,215,0,.10); border-color:rgba(255,215,0,.6); box-shadow:0 0 22px rgba(255,215,0,.45); }
+
+    /* 75% Streak flame effect */
+    #ms75.flame::after{
+      content:''; position:absolute; left:-10%; right:-10%; top:-40%; height:220%;
+      background:conic-gradient(from 200deg at 20% 50%, rgba(255,180,0,.0), rgba(255,140,0,.55), rgba(255,60,0,.0) 40%);
+      filter:blur(14px); opacity:.0; pointer-events:none;
+      animation:streakBurst .9s ease-out forwards;
+    }
+    @keyframes streakBurst{
+      0%{transform:translateX(-20%) scale(1); opacity:.0;}
+      40%{opacity:.85;}
+      100%{transform:translateX(120%) scale(1.05); opacity:0;}
+    }
+
+</style>
 </head>
 <body>
   <canvas id="bg"></canvas>
@@ -112,10 +294,11 @@
     <div class="actions">
       <button class="btn ghost" id="resetBtn">Reset dữ liệu</button>
       <button class="btn ghost" id="hapticBtn">Rung: Bật</button>
+      <button class="btn ghost" id="detailBtn">Chi tiết: Tắt</button>
       <button class="btn" id="copyBtn">Copy kế hoạch</button>
     </div>
   </header>
-  <div class="sub">Finale 100% </b>.</div>
+  <div class="sub">Finale 100%: 5 tên lửa (3 giữa + 2 hai bên) + trail glow + screen flash + <b>shockwave mờ</b> + <b>heat‑distortion</b> + <b>mưa sao băng</b>.</div>
 
   <section class="hero">
     <div class="title">
@@ -156,14 +339,24 @@
           <input id="xpx" type="text" inputmode="numeric" placeholder="VD: 100" value="100">
         </div>
       </div>
+
+      <div class="grid">
+        <div>
+          <label for="todayXu">Hôm nay dự kiến (xu)</label>
+          <input id="todayXu" type="text" inputmode="numeric" placeholder="VD: 300" value="">
+        </div>
+      </div>
       <div class="muted">Gõ số bình thường; hệ thống tự hiểu dấu phẩy/chấm.</div>
     </div>
 
     <div class="card result">
       <h3>Kết quả</h3>
+      <div id="summaryCompact" class="badgeWrap"><div class="badge gold" id="chipPerDayAfter">Ngày sau: —</div><div class="badge purple" id="chipNeedPoint">Thiếu điểm: —</div><div class="badge blue" id="chipLackXu">Thiếu xu: —</div><div class="badge green" id="chipPerDay">Kế hoạch/ngày: —</div></div>
+      <div id="detailWrap" class="hidden">
       <div class="kpis">
         <div class="ring">
           <div class="ringWrap">
+            <div class="planet"></div>
             <svg width="120" height="120" viewBox="0 0 120 120">
               <defs>
                 <linearGradient id="galaxyGrad" x1="0" y1="0" x2="1" y2="1">
@@ -183,15 +376,20 @@
           </div>
         </div>
         <div>
-          <div class="stat hl"><span>Điểm còn thiếu</span><b id="needPoint">0</b></div>
+          <div class="stat hl promo"><span>Điểm còn thiếu</span><b id="needPoint">0</b></div>
           <div class="stat"><span>Số lượt cần đổi</span><b id="needTurn">0</b></div>
           <div class="stat"><span>Xu cần để đủ mốc</span><b id="needXu">0</b></div>
-          <div class="stat hl"><span>Xu còn thiếu (trừ xu đang có)</span><b id="lackXu">0</b></div>
+          <div class="stat hl promo"><span>Xu còn thiếu (trừ xu đang có)</span><b id="lackXu">0</b></div>
         </div>
       </div>
 
       <div class="stat"><span>Với xu hiện có (đổi tối đa)</span><b id="canNow">0 điểm</b></div>
-      <div class="stat"><span>Kế hoạch dàn đều / ngày</span><b id="perDay">0 xu • 0 lượt • 0 điểm</b></div>
+      <div class="stat hl promo"><span>Kế hoạch dàn đều / ngày</span><b id="perDay">0 xu • 0 lượt • 0 điểm</b></div>
+      
+      <div class="stat"><span>Sau HÔM NAY còn lại</span><b id="remainAfterToday">0 xu</b></div>
+      <div class="stat hl promo"><span>Dàn đều CÁC NGÀY CÒN LẠI</span><b id="perDayAfter">0 xu • 0 lượt • 0 điểm</b></div>
+
+      </div>
       <div class="bar" title="Tiến độ đạt mốc"><span id="bar" style="width:0%"></span></div>
       <div class="toolbar" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
         <button class="btn ghost" id="confettiBtn">🎊 Bắn thử pháo</button>
@@ -201,7 +399,7 @@
   </section>
 
   <section class="card checkCard">
-    <h3>Checklist mốc (dựa theo: <span id="modeNote">🥵 Hiện tại</span>)</h3>
+    <h3>Checklist mốc (dựa theo: <span id="modeNote">🤩 Sau khi đổi hết xu</span>)</h3>
     <ul class="cl">
       <li id="ms25"><div class="tick">✓</div><div class="li-txt"><b>25%</b> • <span class="li-sub" id="ts25">Chưa đạt</span></div></li>
       <li id="ms50"><div class="tick">✓</div><div class="li-txt"><b>50%</b> • <span class="li-sub" id="ts50">Chưa đạt</span></div></li>
@@ -234,7 +432,7 @@
 
   let ringMode='now';
   let milestones = { "25": null, "50": null, "75": null, "100": null };
-  let settings = { haptics: true };
+  let settings = { haptics: true, showDetail: false };
   let finalePlayed = false;
   window.forceFX = false;
 
@@ -248,23 +446,35 @@
     if(s.ringMode) ringMode = s.ringMode;
     if(s.milestones) milestones = s.milestones;
     if(s.settings) settings = Object.assign(settings, s.settings);
-    setModeButtons(); renderMilestonesMeta();
+    setModeButtons(); renderMilestonesMeta(); updateHapticBtn(); updateDetailBtn(); updateDetailUI();
   }
   function saveNow(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(getState())); }catch(e){} }
   function loadSaved(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) setState(JSON.parse(raw)); }catch(e){} }
 
   function vibrate(pattern){ if(settings.haptics && 'vibrate' in navigator) { try{ navigator.vibrate(pattern); }catch(e){} } }
   function updateHapticBtn(){ $('hapticBtn').textContent = 'Rung: ' + (settings.haptics ? 'Bật' : 'Tắt'); }
+
+  function updateDetailBtn(){ $('detailBtn').textContent = 'Chi tiết: ' + (settings.showDetail ? 'Bật' : 'Tắt'); }
+  function updateDetailUI(){
+    const wrap = $('detailWrap'), sum = $('summaryCompact');
+    if(!wrap || !sum) return;
+    if(settings.showDetail){ wrap.classList.remove('hidden'); sum.classList.add('hidden'); }
+    else { wrap.classList.add('hidden'); sum.classList.remove('hidden'); }
+  }
+
   document.addEventListener('click', (e)=>{
     if(e.target && e.target.id === 'hapticBtn'){
       settings.haptics=!settings.haptics; updateHapticBtn(); saveNow(); if(settings.haptics) vibrate([12,30,12]);
+    }
+    if(e.target && e.target.id === 'detailBtn'){
+      settings.showDetail=!settings.showDetail; updateDetailBtn(); updateDetailUI(); saveNow();
     }
   });
 
   function setModeButtons(){
     $('modeNow').classList.toggle('active', ringMode==='now');
     $('modeMax').classList.toggle('active', ringMode==='max');
-    $('modeNote').textContent = ringMode==='now' ? '🥵 Hiện tại' : '🤩 Sau khi đổi hết xu';
+    $('modeNote').textContent = '🤩 Sau khi đổi hết xu';
   }
   function renderMilestonesMeta(){
     ['25','50','75','100'].forEach(k => {
@@ -621,9 +831,11 @@
   function applyAchievementUI(pct){
     const cross=(k,thr,pattern)=>{
       if(pct>=thr){
-        $('ms'+k).classList.add('achieved');
+        const li = $('ms'+k);
+        if(li) li.classList.add('achieved');
         if(!milestones[k]){
           milestones[k]=nowStamp(); vibrate(pattern);
+          if(li){ li.classList.add('pulse'); setTimeout(()=>li.classList.remove('pulse'),600); }
           if(k==='100'){
             playFinale();
           } else {
@@ -675,9 +887,45 @@
     $('ring').setAttribute('stroke-dashoffset', String(circ * (1 - pct)));
     $('pct').textContent=Math.round(pct*100)+'%';
     $('bar').style.width=Math.round(pct*100)+'%';
-    if(pct>=1 && !finalePlayed){ playFinale(); finalePlayed=true; }
-    applyAchievementUI(pct); saveNow();
-  }
+    if(pct>=1 && !finalePlayed){ playFinale(); finalePlayed=true; const barWrap = $('bar')? $('bar').parentElement : null; if(barWrap){ barWrap.classList.add('completeBar'); setTimeout(()=>barWrap.classList.remove('completeBar'),1000);} }
+    
+    // === SAU HÔM NAY ===
+    const todayXu = Math.max(0, num($('todayXu') ? $('todayXu').value : 0));
+    let remainXuAfterToday = Math.max(0, needXu - todayXu);
+    const daysLeftAfterToday = Math.max(0, days - 1);
+    const perDayXuAfterToday = daysLeftAfterToday > 0
+      ? Math.ceil(remainXuAfterToday / daysLeftAfterToday)
+      : remainXuAfterToday;
+    const perDayTurnAfterToday = xpx > 0 ? Math.ceil(perDayXuAfterToday / xpx) : 0;
+    const perDayPointAfterToday = perDayTurnAfterToday * ppx;
+
+    if ($('remainAfterToday')) $('remainAfterToday').textContent = fmtInt(remainXuAfterToday) + ' xu';
+    if ($('perDayAfter')) $('perDayAfter').textContent =
+      `${fmtInt(perDayXuAfterToday)} xu • ${fmtInt(perDayTurnAfterToday)} lượt • ${fmtInt(perDayPointAfterToday)} điểm`;
+
+    if (todayXu >= needXu) {
+      remainXuAfterToday = 0;
+      if ($('remainAfterToday')) $('remainAfterToday').textContent = '0 xu';
+      if ($('perDayAfter')) $('perDayAfter').textContent = `0 xu • 0 lượt • 0 điểm`;
+    }
+    if (daysLeftAfterToday === 0 && days > 0) {
+      const remainToday = Math.max(0, needXu - todayXu);
+      if ($('perDayAfter')) $('perDayAfter').textContent =
+        `${fmtInt(remainToday)} xu • ${fmtInt(xpx>0?Math.ceil(remainToday/xpx):0)} lượt • ${fmtInt((xpx>0?Math.ceil(remainToday/xpx):0)*ppx)} điểm`;
+    }
+
+    
+    // === SUMMARY COMPACT (chips with icons) ===
+    const todayVal = Math.max(0, num($('todayXu') ? $('todayXu').value : 0));
+    if ($('chipNeedPoint')) $('chipNeedPoint').textContent = `⭐ Thiếu điểm: ${fmtInt(needPointRaw)}`;
+    if ($('chipLackXu')) $('chipLackXu').textContent = `💰 Thiếu xu: ${fmtInt(lackXu)}`;
+    if ($('chipPerDay')) $('chipPerDay').textContent = `🚀 Kế hoạch/ngày: ${fmtInt(perDayXu)} xu`;
+    if ($('chipPerDayAfter')) $('chipPerDayAfter').textContent = `📅 Ngày sau: ${fmtInt(perDayXuAfterToday)} xu (~${fmtInt(perDayTurnAfterToday)} lượt)`;
+
+    applyAchievementUI(pctMax);
+    renderMilestonesMeta();
+    saveNow();
+    }
 
   function bindEvents(){
     $('finaleBtn').addEventListener('click', ()=>{ playFinale(); });
@@ -717,7 +965,7 @@
     inputs.forEach(el=>['input','change','keyup','paste','blur'].forEach(ev=> el.addEventListener(ev, recalc)));
   }
 
-  document.addEventListener('DOMContentLoaded', ()=>{ loadSaved(); setModeButtons(); bindEvents(); recalc(); });
+  document.addEventListener('DOMContentLoaded', ()=>{ loadSaved(); setModeButtons(); bindEvents(); updateHapticBtn(); updateDetailBtn(); updateDetailUI(); document.querySelector('.bar')?.classList.add('animateHue'); recalc(); });
   </script>
 </body>
 </html>
